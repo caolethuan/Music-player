@@ -1,11 +1,11 @@
 
     // 1. Render songs --> ok
     // 2. Scroll top --> ok
-    // 3. Play/pause/seek
-    // 4. CD rotate
-    // 5. Next/prev
-    // 6. Random
-    // 7. Next/Repeat when ended
+    // 3. Play/pause/seek --> ok
+    // 4. CD rotate --> ok
+    // 5. Next/prev --> ok
+    // 6. Random --> ok
+    // 7. Next/Repeat when ended --> ok 
     // 8. Active song
     // 9. Scroll active song into view
     // 10.Play song when click
@@ -22,10 +22,14 @@
     const playBtn = $('.btn-toggle-play')
     const nextBtn = $('.btn-next')
     const prevBtn = $('.btn-prev')
+    const randomBtn = $('.btn-random')
+    const repeatBtn = $('.btn-repeat')
 
     const app = {
         currentIndex: 0,
         isPlaying: false,
+        isRandom: false,
+        isRepeat: false,
         songs: [
             {
               name: 'Đường chân trời',
@@ -59,9 +63,9 @@
             }
         ],
         render(){
-            const htmls = this.songs.map(song =>{
+            const htmls = this.songs.map((song, index) =>{
                 return `
-                <div class="song">
+                <div class="song ${index == this.currentIndex ? 'active' : ''}">
                     <div class="thumb" style="background-image: url('${song.image}')">
                     </div>
                     <div class="body">
@@ -147,17 +151,56 @@
 
             // Xử lý khi next
             nextBtn.onclick = ()=>{
-                that.nextSong()
+                if (that.isRandom) {
+                    that.playRandomSong()
+                } else {
+                    that.nextSong()
+                }
+                that.render()
                 audio.play()
+                that.scrollToActiveSong()
             }
 
             // Xử lý khi prev
             prevBtn.onclick = ()=>{
-                that.prevSong()
+                if (that.isRandom) {
+                    that.playRandomSong()
+                } else {
+                    that.prevSong()
+                }
+                that.render()
                 audio.play()
+                that.scrollToActiveSong()
             }
                 
-            
+            // Xử lý bật / tắt random song
+            randomBtn.onclick = ()=>{
+                that.isRandom = !that.isRandom
+                randomBtn.classList.toggle('active', that.isRandom)
+            }
+
+            // Xử lý next song khi audio ended
+            audio.onended = ()=>{
+                if (that.isRepeat) {
+                    audio.play()
+                } else {
+                    nextBtn.click()
+                }
+            }
+
+            // Xử lỷ bật / tắt repeat song
+            repeatBtn.onclick = ()=>{
+                that.isRepeat = !that.isRepeat
+                repeatBtn.classList.toggle('active', that.isRepeat)
+            }
+        },
+        scrollToActiveSong(){
+            setTimeout(()=>{
+                $('.song.active').scrollIntoView({
+                    behavior: 'smooth',
+                    block: 'nearest'
+                })
+            }, 200)
         },
         loadCurrentSong(){
             heading.textContent = this.currentSong.name
@@ -177,6 +220,15 @@
             if (this.currentIndex == -1) {
                 this.currentIndex = this.songs.length - 1
             }
+            this.loadCurrentSong()
+        },
+        playRandomSong(){
+            let newIndex
+            do {
+                newIndex = Math.floor(Math.random() * this.songs.length)
+            } while (newIndex === this.currentIndex)
+
+            this.currentIndex = newIndex
             this.loadCurrentSong()
         },
         start(){
