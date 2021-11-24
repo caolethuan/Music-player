@@ -148,6 +148,7 @@
     background-color: var(--primary-color);
   }
   
+  /* active: lớp giả bắt giữ hành vi giữ chuột */
   .song:active {
     opacity: 0.8;
   }
